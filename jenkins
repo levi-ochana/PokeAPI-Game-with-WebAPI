@@ -31,14 +31,16 @@ pipeline {
         // Initialize Terraform
         stage('Initialize Terraform') {
             steps {
-                sh 'terraform init'  // Initialize Terraform (if not already initialized)
+                dir('Deployment') {  // Enter the Deployment directory
+                    sh 'terraform init'  // Initialize Terraform (if not already initialized)
             }
         }
 
         // Apply Terraform to create resources (EC2 instances)
         stage('Apply Terraform') {
             steps {
-                sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
+                dir('Deployment') {  // Enter the Deployment directory
+                    sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
             }
         }
 
