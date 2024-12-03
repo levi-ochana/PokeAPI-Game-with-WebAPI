@@ -22,7 +22,7 @@ resource "aws_instance" "game_instance" {
 
               # Clone the PokeAPI game from GitHub
               cd /home/ec2-user
-              git clone https://github.com/levi-ochanaPokeAPI-Game-with-WebAPI.git
+              git clone https://github.com/levi-ochana/PokeAPI-Game-with-WebAPI.git
 
               # Navigate to the game directory
               cd PokeAPI-Game-with-WebAPI
