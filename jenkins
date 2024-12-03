@@ -1,0 +1,120 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_REPO = 'leviochana'  // Docker Hub username
+        DOCKER_IMAGE = "${DOCKER_HUB_REPO}/flaskimage:latest"  // Flask Docker image name
+        MONGO_IMAGE = 'mongo:latest'  // MongoDB Docker image
+        EC2_USER = 'ec2-user'  // EC2 user
+        BACKEND_IP = ''  // This will be set dynamically from Terraform output
+
+        // AWS Credentials as environment variables
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+
+        // Docker Hub Credentials
+        DOCKER_USER = credentials('docker-hub-credentials-username')
+        DOCKER_PASS = credentials('docker-hub-credentials-password')
+
+        // SSH Key for EC2
+        SSH_KEY = credentials('my-ssh-key')
+    }
+
+    stages {
+        // Clone the Flask App Repository
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/levi-ochana/PokeAPIwithWEB.git'  // Repository URL
+            }
+        }
+
+        // Initialize Terraform
+        stage('Initialize Terraform') {
+            steps {
+                sh 'terraform init'  // Initialize Terraform (if not already initialized)
+            }
+        }
+
+        // Apply Terraform to create resources (EC2 instances)
+        stage('Apply Terraform') {
+            steps {
+                sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
+            }
+        }
+
+        // Fetch EC2 IP from Terraform
+        stage('Fetch EC2 IP from Terraform') {
+            steps {
+                script {
+                    // Run Terraform output command to fetch the backend EC2 public IP
+                    def terraformOutput = sh(script: "terraform output -raw backend_instance_ip", returnStdout: true).trim()
+                    // Set the EC2_IP environment variable to the output value
+                    env.BACKEND_IP = terraformOutput
+                    echo "Fetched EC2 IP: ${env.BACKEND_IP}"  // Print the fetched EC2 IP
+                }
+            }
+        }
+
+        // Build the Flask App Docker Image
+        stage('Build Docker Image') {
+            steps {
+                dir('flask_image') {
+                    sh 'docker build -t $DOCKER_IMAGE .'  // Build the Flask Docker image
+                }
+            }
+        }
+
+        // Push the Docker Image to Docker Hub
+        stage('Push Docker Image') {
+            steps {
+                sh '''
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin  // Log in to Docker Hub
+                docker push $DOCKER_IMAGE  // Push the Docker image to Docker Hub
+                '''
+            }
+        }
+
+        // Deploy MongoDB on EC2
+        stage('Deploy MongoDB') {
+            steps {
+                sh '''
+                ssh -i $SSH_KEY $EC2_USER@$BACKEND_IP << EOF
+                  docker pull $MONGO_IMAGE  // Pull the MongoDB Docker image
+                  docker run -d --name mongo -p 27017:27017 \
+                    -v /data/db:/data/db \
+                    -e MONGO_INITDB_ROOT_USERNAME=admin \
+                    -e MONGO_INITDB_ROOT_PASSWORD=secret_password \
+                    $MONGO_IMAGE  // Run MongoDB container with specified credentials
+                EOF
+                '''
+            }
+        }
+
+        // Deploy Flask App on EC2
+        stage('Deploy Flask App') {
+            steps {
+                sh '''
+                ssh -i $SSH_KEY $EC2_USER@$BACKEND_IP << EOF
+                  docker pull $DOCKER_IMAGE  // Pull the Flask app Docker image
+                  docker stop pokeapi-flask || true  // Stop any existing Flask container
+                  docker rm pokeapi-flask || true  // Remove any existing Flask container
+                  docker run -d --name pokeapi-flask -p 5000:5000 \
+                    --link mongo:mongo \
+                    $DOCKER_IMAGE  // Run the Flask app container and link it to MongoDB
+                EOF
+                '''
+            }
+        }
+
+        // Check Running Containers
+        stage('Check Running Containers') {
+            steps {
+                sh '''
+                ssh -i $SSH_KEY $EC2_USER@$BACKEND_IP << EOF
+                  docker ps  // List the running containers on the EC2 instance
+                EOF
+                '''
+            }
+        }
+    }
+}
