@@ -33,6 +33,7 @@ pipeline {
             steps {
                 dir('Deployment') {  // Enter the Deployment directory
                     sh 'terraform init'  // Initialize Terraform (if not already initialized)
+                }
             }
         }
 
@@ -41,6 +42,7 @@ pipeline {
             steps {
                 dir('Deployment') {  // Enter the Deployment directory
                     sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
+                }
             }
         }
 
@@ -49,7 +51,7 @@ pipeline {
             steps {
                 script {
                     // Run Terraform output command to fetch the backend EC2 public IP
-                    def terraformOutput = sh(script: "terraform output -raw backend_instance_ip", returnStdout: true).trim()
+                    def terraformOutput = sh(script: "terraform output -raw backend_instance_ip", returnStdout: true, dir: 'Deployment').trim()
                     // Set the EC2_IP environment variable to the output value
                     env.BACKEND_IP = terraformOutput
                     echo "Fetched EC2 IP: ${env.BACKEND_IP}"  // Print the fetched EC2 IP
