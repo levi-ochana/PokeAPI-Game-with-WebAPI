@@ -8,12 +8,8 @@ pipeline {
         EC2_USER = 'ec2-user'  // EC2 user
         BACKEND_IP = ''  // This will be set dynamically from Terraform output
 
-        // Docker Hub Credentials
-        DOCKER_USER = credentials('docker-hub-credentials-username')
-        DOCKER_PASS = credentials('docker-hub-credentials-password')
-
         // SSH Key for EC2
-        SSH_KEY = credentials('my-ssh-key')
+        SSH_KEY = credentials('my-ssh-key')  // SSH Key to access EC2
     }
 
     stages {
@@ -31,7 +27,7 @@ pipeline {
                                  string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY'),
                                  string(credentialsId: 'aws-session-token', variable: 'AWS_SESSION_TOKEN')]) {
                     dir('Deployment') {  // Enter the Deployment directory
-                        sh 'terraform init'  // Initialize Terraform (if not already initialized)
+                        sh 'terraform init'  // Initialize Terraform
                     }
                 }
             }
@@ -44,7 +40,7 @@ pipeline {
                                  string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY'),
                                  string(credentialsId: 'aws-session-token', variable: 'AWS_SESSION_TOKEN')]) {
                     dir('Deployment') {  // Enter the Deployment directory
-                        sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
+                        sh 'terraform apply -auto-approve'  // Apply Terraform configurations
                     }
                 }
             }
@@ -54,9 +50,7 @@ pipeline {
         stage('Fetch EC2 IP from Terraform') {
             steps {
                 script {
-                    // Run Terraform output command to fetch the backend EC2 public IP
                     def terraformOutput = sh(script: "terraform output -raw backend_instance_ip", returnStdout: true, dir: 'Deployment').trim()
-                    // Set the EC2_IP environment variable to the output value
                     env.BACKEND_IP = terraformOutput
                     echo "Fetched EC2 IP: ${env.BACKEND_IP}"  // Print the fetched EC2 IP
                 }
@@ -75,10 +69,12 @@ pipeline {
         // Push the Docker Image to Docker Hub
         stage('Push Docker Image') {
             steps {
-                sh '''
-                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin  // Log in to Docker Hub
-                docker push $DOCKER_IMAGE  // Push the Docker image to Docker Hub
-                '''
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials-username', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin  // Log in to Docker Hub
+                    docker push $DOCKER_IMAGE  // Push the Docker image to Docker Hub
+                    '''
+                }
             }
         }
 
@@ -92,7 +88,7 @@ pipeline {
                     -v /data/db:/data/db \
                     -e MONGO_INITDB_ROOT_USERNAME=admin \
                     -e MONGO_INITDB_ROOT_PASSWORD=secret_password \
-                    $MONGO_IMAGE  // Run MongoDB container with specified credentials
+                    $MONGO_IMAGE  // Run MongoDB container
                 EOF
                 '''
             }
