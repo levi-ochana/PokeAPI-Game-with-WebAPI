@@ -8,10 +8,6 @@ pipeline {
         EC2_USER = 'ec2-user'  // EC2 user
         BACKEND_IP = ''  // This will be set dynamically from Terraform output
 
-        // AWS Credentials as environment variables
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-
         // Docker Hub Credentials
         DOCKER_USER = credentials('docker-hub-credentials-username')
         DOCKER_PASS = credentials('docker-hub-credentials-password')
@@ -31,8 +27,12 @@ pipeline {
         // Initialize Terraform
         stage('Initialize Terraform') {
             steps {
-                dir('Deployment') {  // Enter the Deployment directory
-                    sh 'terraform init'  // Initialize Terraform (if not already initialized)
+                withCredentials([string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                                 string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY'),
+                                 string(credentialsId: 'aws-session-token', variable: 'AWS_SESSION_TOKEN')]) {
+                    dir('Deployment') {  // Enter the Deployment directory
+                        sh 'terraform init'  // Initialize Terraform (if not already initialized)
+                    }
                 }
             }
         }
@@ -40,8 +40,12 @@ pipeline {
         // Apply Terraform to create resources (EC2 instances)
         stage('Apply Terraform') {
             steps {
-                dir('Deployment') {  // Enter the Deployment directory
-                    sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
+                withCredentials([string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                                 string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY'),
+                                 string(credentialsId: 'aws-session-token', variable: 'AWS_SESSION_TOKEN')]) {
+                    dir('Deployment') {  // Enter the Deployment directory
+                        sh 'terraform apply -auto-approve'  // Apply Terraform configurations to create resources
+                    }
                 }
             }
         }
