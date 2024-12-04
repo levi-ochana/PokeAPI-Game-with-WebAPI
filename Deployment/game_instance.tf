@@ -1,6 +1,6 @@
 # Create an EC2 Instance for PokeAPI Game 
 resource "aws_instance" "game_instance" {
-  ami           = "ami-0a91cd140a1fc148a"  # Amazon Linux 2 AMI ID
+  ami           = "ami-055e3d4f0bbeb5878"  # Amazon Linux 2 AMI ID
   instance_type = "t2.micro"  # Free tier instance type
   subnet_id     = aws_subnet.poke_subnet.id
   security_groups = [aws_security_group.poke_sg.id]
