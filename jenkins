@@ -23,9 +23,9 @@ pipeline {
         // Initialize Terraform
         stage('Initialize Terraform') {
             steps {
-                withCredentials([string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
-                                 string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY'),
-                                 string(credentialsId: 'aws-session-token', variable: 'AWS_SESSION_TOKEN')]) {
+                withCredentials([string(credentialsId: 'aws_access_key_id', variable: 'AWS_ACCESS_KEY_ID'),
+                                 string(credentialsId: 'aws_secret_access_key', variable: 'AWS_SECRET_ACCESS_KEY'),
+                                 string(credentialsId: 'aws_session_token', variable: 'AWS_SESSION_TOKEN')]) {
                     dir('Deployment') {  // Enter the Deployment directory
                         sh 'terraform init'  // Initialize Terraform
                     }
@@ -36,9 +36,9 @@ pipeline {
         // Apply Terraform to create resources (EC2 instances)
         stage('Apply Terraform') {
             steps {
-                withCredentials([string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
-                                 string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY'),
-                                 string(credentialsId: 'aws-session-token', variable: 'AWS_SESSION_TOKEN')]) {
+                withCredentials([string(credentialsId: 'aws_access_key_id', variable: 'AWS_ACCESS_KEY_ID'),
+                                 string(credentialsId: 'aws_secret_access_key', variable: 'AWS_SECRET_ACCESS_KEY'),
+                                 string(credentialsId: 'aws_session_token', variable: 'AWS_SESSION_TOKEN')]) {
                     dir('Deployment') {  // Enter the Deployment directory
                         sh 'terraform apply -auto-approve'  // Apply Terraform configurations
                     }
