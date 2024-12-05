@@ -84,12 +84,8 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'my-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
                     ssh -i $SSH_KEY $EC2_USER@$BACKEND_IP << EOF
-                    docker pull $MONGO_IMAGE  // Pull the MongoDB Docker image
-                    docker run -d --name mongo -p 27017:27017 \
-                        -v /data/db:/data/db \
-                        -e MONGO_INITDB_ROOT_USERNAME=admin \
-                        -e MONGO_INITDB_ROOT_PASSWORD=secret_password \
-                        $MONGO_IMAGE  // Run MongoDB container
+                    docker run -d --name mongo -p 27017:27017 -v /data/db:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=secret_password mongo
+
                     EOF
                     '''
                 }

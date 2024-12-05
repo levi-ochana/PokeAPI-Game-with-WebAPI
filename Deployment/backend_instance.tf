@@ -5,6 +5,7 @@ resource "aws_instance" "backend_instance" {
   key_name = data.aws_key_pair.poke_key_pair.key_name
   subnet_id     = aws_subnet.poke_subnet.id
   security_groups = [aws_security_group.poke_sg.id]
+  associate_public_ip_address = true
 
   tags = {
     Name = "PokeAPI-Backend"

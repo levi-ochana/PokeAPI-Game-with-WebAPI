@@ -54,7 +54,7 @@ def main():
 
 # Define the Flask API URL (the backend URL)
 def get_backend_ip():
-    result = subprocess.run(['terraform', 'output', 'backend_instance_ip'], stdout=subprocess.PIPE , cwd='../Deployment')
+    result = subprocess.run(['terraform', 'output', 'backend_instance_ip'], stdout=subprocess.PIPE , cwd='./Deployment')
     return result.stdout.decode('utf-8').strip()
 API_URL = f"http://{get_backend_ip()}:5000/api/pokemon" # API URL of Flask service
 
