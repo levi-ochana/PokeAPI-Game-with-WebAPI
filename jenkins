@@ -50,12 +50,13 @@ pipeline {
         stage('Fetch EC2 IP from Terraform') {
             steps {
                 script {
-                    def terraformOutput = sh(script: "terraform output -raw backend_instance_ip", returnStdout: true, dir: 'Deployment').trim()
+                    def terraformOutput = sh(script: "cd Deployment && terraform output -raw backend_instance_ip", returnStdout: true).trim()
                     env.BACKEND_IP = terraformOutput
                     echo "Fetched EC2 IP: ${env.BACKEND_IP}"  // Print the fetched EC2 IP
                 }
             }
         }
+
 
         // Build the Flask App Docker Image
         stage('Build Docker Image') {
@@ -77,22 +78,24 @@ pipeline {
                 }
             }
         }
-
         // Deploy MongoDB on EC2
         stage('Deploy MongoDB') {
             steps {
-                sh '''
-                ssh -i $SSH_KEY $EC2_USER@$BACKEND_IP << EOF
-                  docker pull $MONGO_IMAGE  // Pull the MongoDB Docker image
-                  docker run -d --name mongo -p 27017:27017 \
-                    -v /data/db:/data/db \
-                    -e MONGO_INITDB_ROOT_USERNAME=admin \
-                    -e MONGO_INITDB_ROOT_PASSWORD=secret_password \
-                    $MONGO_IMAGE  // Run MongoDB container
-                EOF
-                '''
+                withCredentials([sshUserPrivateKey(credentialsId: 'my-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                    sh '''
+                    ssh -i $SSH_KEY $EC2_USER@$BACKEND_IP << EOF
+                    docker pull $MONGO_IMAGE  // Pull the MongoDB Docker image
+                    docker run -d --name mongo -p 27017:27017 \
+                        -v /data/db:/data/db \
+                        -e MONGO_INITDB_ROOT_USERNAME=admin \
+                        -e MONGO_INITDB_ROOT_PASSWORD=secret_password \
+                        $MONGO_IMAGE  // Run MongoDB container
+                    EOF
+                    '''
+                }
             }
         }
+
 
         // Deploy Flask App on EC2
         stage('Deploy Flask App') {
