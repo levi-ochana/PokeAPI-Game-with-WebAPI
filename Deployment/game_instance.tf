@@ -4,7 +4,7 @@ resource "aws_instance" "game_instance" {
   instance_type = "t2.micro"  # Free tier instance type
   key_name = data.aws_key_pair.poke_key_pair.key_name
   subnet_id     = aws_subnet.poke_subnet.id
-  security_group_ids = [aws_security_group.poke_sg.id]
+  security_groups = [aws_security_group.poke_sg.id]
 
   tags = {
     Name = "PokeAPI-Game"
