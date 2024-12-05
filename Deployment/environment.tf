@@ -101,11 +101,11 @@ resource "aws_route_table_association" "poke_route_table_association" {
 # Allocate an Elastic IP for the backend EC2 instance
 resource "aws_eip" "poke_backend_eip" {
   instance = aws_instance.backend_instance.id  # Attach the EIP to your EC2 instance
-  vpc      = true
+  domain      = true
 }
 
 # Allocate an Elastic IP for the game instance EC2 instance
 resource "aws_eip" "poke_game_eip" {
   instance = aws_instance.game_instance.id  # Attach the EIP to your game EC2 instance
-  vpc      = true
+  domain      = true
 }
