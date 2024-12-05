@@ -60,7 +60,7 @@ pipeline {
         // Build the Flask App Docker Image
         stage('Build Docker Image') {
             steps {
-                dir('flask_image') {
+                dir('Flask_image') {
                     sh 'docker build -t $DOCKER_IMAGE .'  // Build the Flask Docker image
                 }
             }
@@ -71,8 +71,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials-username', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin  // Log in to Docker Hub
-                    docker push $DOCKER_IMAGE  // Push the Docker image to Docker Hub
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push $DOCKER_IMAGE
                     '''
                 }
             }

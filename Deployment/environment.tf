@@ -16,6 +16,21 @@ resource "aws_subnet" "poke_subnet" {
   availability_zone = var.availability_zone  # Use the availability zone variable
 }
 
+
+# Use an existing Key Pair "vockey" if available, else create a new one
+data "aws_key_pair" "poke_key_pair" {
+  key_name = "vockey"
+}
+
+resource "aws_key_pair" "poke_key_pair" {
+  count     = length(data.aws_key_pair.poke_key_pair.id) == 0 ? 1 : 0
+  key_name  = "vockey"
+  public_key = file(var.public_key_path)  # Path to your public key
+}
+
+
+
+
 # Create a Security Group
 resource "aws_security_group" "poke_sg" {
   vpc_id = aws_vpc.poke_vpc.id
