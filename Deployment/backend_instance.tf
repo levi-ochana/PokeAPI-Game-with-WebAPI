@@ -2,8 +2,7 @@
 resource "aws_instance" "backend_instance" {
   ami           = "ami-055e3d4f0bbeb5878"  # Amazon Linux 2 AMI ID
   instance_type = "t2.micro"  # Use a t2.micro instance for the free tier
-  key_name      = data.aws_key_pair.poke_key_pair.key_name != "" ? data.aws_key_pair.poke_key_pair.key_name : aws_key_pair.poke_key_pair.key_name
-  subnet_id     = aws_subnet.poke_subnet.id
+  key_name = data.aws_key_pair.poke_key_pair.key_name
   security_groups = [aws_security_group.poke_sg.id]
 
   tags = {
