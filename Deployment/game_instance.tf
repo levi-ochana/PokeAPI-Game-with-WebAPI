@@ -35,3 +35,9 @@ resource "aws_instance" "game_instance" {
               nohup python3 game.py > game.log 2>&1 &
               EOF
 }
+
+
+output "game_instance_ip" {
+  value = aws_instance.game_instance.public_ip
+  description = "Public IP of the game EC2 instance"
+}
