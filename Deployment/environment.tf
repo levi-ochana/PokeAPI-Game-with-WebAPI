@@ -109,3 +109,7 @@ resource "aws_eip" "poke_game_eip" {
   instance = aws_instance.game_instance.id  # Attach the EIP to your game EC2 instance
   domain      = "vpc"
 }
+
+output "poke_backend_eip" {
+  value = aws_eip.poke_backend_eip.public_ip
+}

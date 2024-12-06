@@ -39,7 +39,3 @@ resource "aws_instance" "game_instance" {
 }
 
 
-output "game_instance_ip" {
-  value = aws_instance.game_instance.public_ip
-  description = "Public IP of the game EC2 instance"
-}
