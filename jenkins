@@ -59,6 +59,20 @@ pipeline {
             }
         }
 
+        // Fetch SECOND Elastic IP (EIP)
+        stage('Fetch SECOND Elastic IP') {
+            steps {
+                script {
+                    env.SECOND_ELASTIC_IP = dir('Deployment') {
+                        sh(
+                            script: 'terraform output -raw poke_game_eip',
+                            returnStdout: true
+                        ).trim()
+                    }
+                }
+            }
+        }
+
         // Build the Flask App Docker Image
         stage('Build Docker Image') {
             steps {
@@ -81,11 +95,11 @@ pipeline {
         }
 
 
-        // Set BACKEND_IP on EC2
-        stage('Set BACKEND_IP on EC2') {
+        // Set game_IP on EC2
+        stage('Set game_IP on EC2') {
             steps {
                 sh """
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP \
+                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$SECOND_ELASTIC_IP \
                 'echo "export BACKEND_IP=\$ELASTIC_IP" >> ~/.bashrc && source ~/.bashrc'
                 """
             }
