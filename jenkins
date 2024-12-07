@@ -95,13 +95,15 @@ pipeline {
             steps {
                 sh """
                 ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP \
-                'docker pull $DOCKER_IMAGE && \
+                'export BACKEND_IP=$ELASTIC_IP && \
+                docker pull $DOCKER_IMAGE && \
                 docker stop pokeapi-flask || true && \
                 docker rm pokeapi-flask || true && \
-                docker run -d --name pokeapi-flask -p 5000:5000 --link mongo:mongo $DOCKER_IMAGE'
+                docker run -d --name pokeapi-flask -p 5000:5000 --link mongo:mongo -e BACKEND_IP=$BACKEND_IP $DOCKER_IMAGE'
                 """
             }
         }
+
 
         // Check Running Containers on EC2 using Elastic IP
         stage('Check Running Containers') {

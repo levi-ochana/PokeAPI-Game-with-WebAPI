@@ -2,6 +2,8 @@ import requests
 import json
 import random
 import subprocess
+import os
+
 
 # Main function to run the game
 def main():
@@ -50,12 +52,11 @@ def main():
         else:
             print("Invalid choice, please enter 1, 2, or 3.")
 
-# Define the Flask API URL (the backend URL)
-def get_backend_ip():
-    # Get the Elastic IP from Terraform output (make sure this is part of your Terraform configuration)
-    result = subprocess.run(['terraform', 'output', 'elastic_ip'], stdout=subprocess.PIPE, cwd='./Deployment')  # Replace 'elastic_ip' with the correct output name
-    return result.stdout.decode('utf-8').strip()
 
+
+
+# Define the Flask API URL (the backend URL)
+backend_ip = os.getenv("BACKEND_IP")
 API_URL = f"http://{get_backend_ip()}:5000/api/pokemon"  # API URL of Flask service
 
 # Function to check if Pokémon exists in the database
