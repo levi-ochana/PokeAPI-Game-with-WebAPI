@@ -72,10 +72,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials-username', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
+                    sh """
                     echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                     docker push $DOCKER_IMAGE
-                    '''
+                    """
                 }
             }
         }
@@ -83,39 +83,39 @@ pipeline {
         // Deploy MongoDB on EC2 using Elastic IP
         stage('Deploy MongoDB') {
             steps {
-                sh '''
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP << EOF
-                docker run -d --name mongo -p 27017:27017 -v /data/db:/data/db \
+                sh """
+                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP <<EOF
+                docker run -d --name mongo -p 27017:27017 -v /data/db:/data/db \\
                 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=secret_password mongo
                 EOF
-                '''
+                """
             }
         }
 
         // Deploy Flask App on EC2 using Elastic IP
         stage('Deploy Flask App') {
             steps {
-                sh '''
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP << EOF
+                sh """
+                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP <<EOF
                 docker pull $DOCKER_IMAGE
                 docker stop pokeapi-flask || true
                 docker rm pokeapi-flask || true
-                docker run -d --name pokeapi-flask -p 5000:5000 \
-                  --link mongo:mongo \
-                  $DOCKER_IMAGE
+                docker run -d --name pokeapi-flask -p 5000:5000 \\
+                --link mongo:mongo \\
+                $DOCKER_IMAGE
                 EOF
-                '''
+                """
             }
         }
 
         // Check Running Containers on EC2 using Elastic IP
         stage('Check Running Containers') {
             steps {
-                sh '''
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP << EOF
+                sh """
+                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP <<EOF
                 docker ps
                 EOF
-                '''
+                """
             }
         }
     }
