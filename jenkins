@@ -80,6 +80,17 @@ pipeline {
             }
         }
 
+
+        // Set BACKEND_IP on EC2
+        stage('Set BACKEND_IP on EC2') {
+            steps {
+                sh """
+                ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$ELASTIC_IP \
+                'echo "export BACKEND_IP=\$ELASTIC_IP" >> ~/.bashrc && source ~/.bashrc'
+                """
+            }
+        }
+
         // Deploy MongoDB on EC2 using Elastic IP
         stage('Deploy MongoDB') {
             steps {
@@ -99,7 +110,7 @@ pipeline {
                 docker pull $DOCKER_IMAGE && \
                 docker stop pokeapi-flask || true && \
                 docker rm pokeapi-flask || true && \
-                docker run -d --name pokeapi-flask -p 5000:5000 --link mongo:mongo -e BACKEND_IP=$BACKEND_IP $DOCKER_IMAGE'
+                docker run -d --name pokeapi-flask -p 5000:5000 --link mongo:mongo -e BACKEND_IP=$ELASTIC_IP $DOCKER_IMAGE'
                 """
             }
         }

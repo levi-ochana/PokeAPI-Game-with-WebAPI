@@ -56,7 +56,9 @@ def main():
 
 
 # Define the Flask API URL (the backend URL)
-backend_ip = os.getenv("BACKEND_IP")
+def get_backend_ip():
+    return os.getenv('BACKEND_IP')
+
 API_URL = f"http://{get_backend_ip()}:5000/api/pokemon"  # API URL of Flask service
 
 # Function to check if Pokémon exists in the database
