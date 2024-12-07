@@ -113,3 +113,9 @@ resource "aws_eip" "poke_game_eip" {
 output "poke_backend_eip" {
   value = aws_eip.poke_backend_eip.public_ip
 }
+
+
+output "poke_game_eip" {
+  value = aws_eip.poke_game_eip.public_ip
+}
+
