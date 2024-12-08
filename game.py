@@ -4,7 +4,6 @@ import random
 import subprocess
 import os
 
-
 # Main function to run the game
 def main():
     print("Welcome to the Pokémon game!")
@@ -52,12 +51,13 @@ def main():
         else:
             print("Invalid choice, please enter 1, 2, or 3.")
 
-
-
-
 # Define the Flask API URL (the backend URL)
 def get_backend_ip():
-    return os.getenv('BACKEND_IP')
+    backend_ip = os.getenv('BACKEND_IP')
+    if not backend_ip:
+        # Default IP for Docker setup or local environment
+        backend_ip = 'localhost'
+    return backend_ip
 
 API_URL = f"http://{get_backend_ip()}:5000/api/pokemon"  # API URL of Flask service
 
@@ -71,7 +71,12 @@ def check_pokemon_in_db(pokemon_name):
 
 # Function to save a Pokémon to the database (via Flask API)
 def save_pokemon_to_db(pokemon):
-    response = requests.post(API_URL, json=pokemon)
+    pokemon_data = {
+        "name": pokemon['name'],
+        "type": [t['type']['name'] for t in pokemon['types']],
+        "abilities": [a['ability']['name'] for a in pokemon['abilities']]
+    }
+    response = requests.post(API_URL, json=pokemon_data)
     if response.status_code == 201:
         print("Pokémon saved to database.")
     else:
