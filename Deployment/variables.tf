@@ -1,6 +1,6 @@
 variable "region" {
   description = "AWS Region"
-  default     = "us-west-2"  # The region where you want to deploy
+  default     = "us-west-2"  
 }
 
 variable "vpc_cidr_block" {
@@ -36,6 +36,11 @@ variable "ssh_port" {
 variable "game_app_port" {
   description = "Port for the game app"
   default     = 8080
+}
+
+variable "MongoDB_port" {
+  description = "Port for the MongoDB port"
+  default     = 27017
 }
 
 

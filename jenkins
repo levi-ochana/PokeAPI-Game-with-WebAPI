@@ -69,6 +69,7 @@ pipeline {
                             returnStdout: true
                         ).trim()
                     }
+                    echo "The SECOND Elastic IP is: ${env.SECOND_ELASTIC_IP}"
                 }
             }
         }
@@ -100,10 +101,11 @@ pipeline {
             steps {
                 sh """
                 ssh -o StrictHostKeyChecking=no -i $SSH_KEY $EC2_USER@$SECOND_ELASTIC_IP \
-                'echo "export BACKEND_IP=\$ELASTIC_IP" >> ~/.bashrc && source ~/.bashrc'
+                'echo "export BACKEND_IP=$ELASTIC_IP" >> ~/.bashrc && source ~/.bashrc'
                 """
             }
         }
+
 
         // Deploy MongoDB on EC2 using Elastic IP
         stage('Deploy MongoDB') {

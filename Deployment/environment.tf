@@ -58,6 +58,14 @@ resource "aws_security_group" "poke_sg" {
     cidr_blocks = ["0.0.0.0/0"]  # Allow access from anywhere
   }
 
+# Allow access to MongoDB (port 27017)
+ingress {
+  from_port   = var.MongoDB_port
+  to_port     = var.MongoDB_port
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"] 
+}
+
 
   # Allow all outgoing traffic
   egress {
@@ -76,6 +84,7 @@ resource "aws_internet_gateway" "poke_igw" {
   }
 }
 
+# create Route Table
 resource "aws_route_table" "poke_route_table" {
   vpc_id = aws_vpc.poke_vpc.id
 
@@ -88,7 +97,6 @@ resource "aws_route_table" "poke_route_table" {
     Name = "PokeAPI-RouteTable"
   }
 }
-
 
 resource "aws_route_table_association" "poke_route_table_association" {
   subnet_id      = aws_subnet.poke_subnet.id
@@ -110,10 +118,10 @@ resource "aws_eip" "poke_game_eip" {
   domain      = "vpc"
 }
 
+# output
 output "poke_backend_eip" {
   value = aws_eip.poke_backend_eip.public_ip
 }
-
 
 output "poke_game_eip" {
   value = aws_eip.poke_game_eip.public_ip
